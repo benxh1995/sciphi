@@ -208,9 +208,10 @@ class TextbookContentGenerator:
         traversal_generator = traverse_config(yml_config)
         prev_chapter_config = None
         current_chapter = None
+        start_flag = False
         for counter, elements in enumerate(traversal_generator):
             textbook, chapter, section, subsection = elements
-            start_flag = self.update_start_flag(
+            start_flag = start_flag or self.is_valid_start(
                 chapter,
                 section,
                 subsection,
@@ -218,7 +219,9 @@ class TextbookContentGenerator:
                 last_section,
                 last_subsection,
             )
-
+            print(
+                f"textbook = {textbook}, chapter = {chapter}, section = {section}, subsection = {subsection}, start_flag = {start_flag}"
+            )
             if not start_flag:
                 continue
 
@@ -263,7 +266,7 @@ class TextbookContentGenerator:
                 chapter, section, subsection, output_path
             )
 
-        # os.remove(output_path.replace(".md", "_progress.txt"))
+        os.remove(output_path.replace(".md", "_progress.txt"))
 
     def setup_output_writer(
         self, textbook_name: str
@@ -388,7 +391,7 @@ class TextbookContentGenerator:
         )
         return output_path, writer, last_chapter, last_section, last_subsection
 
-    def update_start_flag(
+    def is_valid_start(
         self,
         chapter,
         section,
@@ -398,9 +401,7 @@ class TextbookContentGenerator:
         last_subsection,
     ):
         """Update the start flag based on the last processed element."""
-        if not last_chapter:
-            return True
-        return (
+        return not last_chapter or (
             chapter == last_chapter
             and section == last_section
             and (last_subsection == "None" or subsection == last_subsection)
